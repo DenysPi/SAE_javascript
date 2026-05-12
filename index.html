@@ -13,11 +13,27 @@
 <div class="setup-form">
   <h2>Démarrer une nouvelle partie</h2>
 
-</div>
+  <form class="game-form" action="">
+    <label for="name">Nom du joueur: </label>
+    <input type="text" id="name" name="name" required>
 
-<div class="game-area hidden">
-  <div class="game-area-header"></div>
-  <div class="game-board"></div>
+
+
+    <label for="diffuculty">Niveau De Difficulté : </label>
+    
+    <select name="diffuculty" id="difficulty">
+      <option value="1">Facile</option>
+      <option value="2">Moyen</option>
+      <option value="3">Difficile</option>
+    </select>
+
+    <label for="collection">Collection d'images :</label>
+    <select id="collection" name="collection">
+      <option value="animals">animals</option>
+      <option value="fruits">fruits</option>
+      <option value="cars">cars</option>
+    </select>
+
+    <button type="submit">Jouer</button>
+  </form>
 </div>
-</body>
-</html>
