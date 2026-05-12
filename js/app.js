@@ -9,10 +9,15 @@ const game = new Game();
 document.querySelector('.game-form').addEventListener('submit', async function (event) {
   event.preventDefault();
   // Todo À compléter
+  const name = document.querySelector("#name").value;
+  
+  const difficulty = document.querySelector("#difficulty").value;
 
+  
+  const collection = document.querySelector("#collection").value;
   try {
     // Todo Spécifier les paramètres de createGame()
-    const data = await ApiService.createGame();
+    const data = await ApiService.createGame(name, difficulty);
     console.log('Success:', data, data.id);
     game.startGame(data.id);
   } catch (error) {
