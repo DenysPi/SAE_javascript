@@ -22,9 +22,9 @@
     <label for="diffuculty">Niveau De Difficulté : </label>
     
     <select name="diffuculty" id="difficulty">
-      <option value="1">Facile</option>
-      <option value="2">Moyen</option>
-      <option value="3">Difficile</option>
+      <option value="4">Facile</option>
+      <option value="6">Moyen</option>
+      <option value="8">Difficile</option>
     </select>
 
     <label for="collection">Collection d'images :</label>
@@ -37,3 +37,14 @@
     <button type="submit">Jouer</button>
   </form>
 </div>
+
+<div class="game-area hidden">
+  <div class="game-area-header">
+    <h2 id="name"></h2>
+    <button id="abandon">Quitter la partie</button>
+    <div class="game-timer">0s</div>
+  </div>
+  <div class="game-board"></div>
+</div>
+</body>
+</html>

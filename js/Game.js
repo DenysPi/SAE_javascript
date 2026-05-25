@@ -1,12 +1,21 @@
 import {imageCollections} from './ImageCollection.js';
 import {ApiService} from './ApiService.js';
-
+import {DOMManager} from './DOMManager.js';
+import {Board} from './Board.js';
 
 export class Game {
   /**
    * @type {number} id identifiant de la partie en cours
    */
   #id;
+  #difficulty;
+  #collection;
+
+  #dom;
+
+  constructor(dom = new DOMManager()) {
+    this.#dom = dom;
+  }
 
   async endGame() {
     // Todo À compléter
@@ -25,17 +34,37 @@ export class Game {
 
   }
 
+
   /**
    * Start a new game.
    * @param {number} id - The game ID.
    */
-  startGame(id) {
+  startGame(id, diffuculty, collection) {
     this.#id = id;
 
-    // Todo À commpléter
+
+    this.#difficulty = diffuculty;
+    this.#collection = collection;
+
+    const cards = this.getCardsForCollection(collection);
+    
+
+    this.board = new Board(cards);
+
+
+    this.#dom.afficherGameArea();
+    this.#dom.createCards(cards);
 
   }
 
-  // Todo À compléter
+  getCardsForCollection() {
+    const all = imageCollections[this.#collection];
+
+    const cardsSelected = all.slice(0, this.#difficulty);
+
+    const cards = [...cardsSelected, ...cardsSelected];
+
+    return cards.sort(() => Math.random() -0.5);
+  }
 
 }
