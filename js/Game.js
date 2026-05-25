@@ -12,6 +12,8 @@ export class Game {
   #collection;
 
   #dom;
+  #board;
+
 
   constructor(dom = new DOMManager()) {
     this.#dom = dom;
@@ -49,7 +51,7 @@ export class Game {
     const cards = this.getCardsForCollection(collection);
     
 
-    this.board = new Board(cards);
+    this.#board = new Board(cards);
 
 
     this.#dom.afficherGameArea();
@@ -67,4 +69,15 @@ export class Game {
     return cards.sort(() => Math.random() -0.5);
   }
 
+
+  faireTournerCarte(index){
+
+    const resultat = this.#board.tourner(index);
+
+    if (resultat.etat === "ignore") {
+      return;
+    }
+
+    
+  }
 }

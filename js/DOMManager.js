@@ -39,4 +39,9 @@ export class DOMManager {
     document.querySelector(this.#selectors.gameForm).classList.add('hidden');
     document.querySelector(this.#selectors.gameArea).classList.remove('hidden');
   }
+
+  afficherFormulaire() {
+    document.querySelector(this.#selectors.gameForm).classList.remove('hidden');
+    document.querySelector(this.#selectors.gameArea).classList.add('hidden');
+  }
 }
