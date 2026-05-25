@@ -68,7 +68,7 @@ header h1 {
   max-width: 56rem;
 }
 
-.setup-form h2 {
+h2 {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
@@ -78,8 +78,31 @@ header h1 {
 /* ── Form ── */
 .game-form {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: stretch;
   gap: 1rem;
+}
+
+
+.form-left {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-right {
+  flex: 1;
+  display: flex;
+  
+}
+
+.form-right-bottom {
+  margin-top: auto; 
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-bottom: 2rem;
 }
 
 .game-form label {
@@ -136,7 +159,7 @@ header h1 {
   max-width: 56rem;
   margin-top: 2rem;
 }
-
+ 
 .game-area-header {
   display: flex;
   align-items: center;
@@ -256,4 +279,27 @@ header h1 {
 .card.matched {
   border: 4px solid var(--color-text-title);
   cursor: default;
+}
+
+
+
+.room-input-group{
+  display: flex;
+}
+
+
+.buttons{
+  display: flex;
+  justify-content:space-around;
+}
+
+
+.waiting-area {
+  margin-top: 1.5rem;
+  padding: 2rem;
+  background-color: var(--color-bg-panel);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 56rem;
 }

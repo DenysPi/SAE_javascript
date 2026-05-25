@@ -2,26 +2,42 @@ import {DOMManager} from './DOMManager.js';
 import {Game} from './Game.js';
 import {ApiService} from './ApiService.js';
 
+import {Multiplayer} from './Multiplayer.js';
+
+
 const domManager = new DOMManager();
 const game = new Game();
 
+const getName = () => document.querySelector("#name").value.trim();
+const getDifficulty = () => document.querySelector("#difficulty").value;
+const getCollection = () => document.querySelector("#collection").value;
+const getRoomCode = () => document.querySelector("#room-code").value
 
-document.querySelector('.game-form').addEventListener('submit', async function (event) {
-  event.preventDefault();
-  // Todo À compléter
-  const name = document.querySelector("#name").value;
-  
-  const difficulty = document.querySelector("#difficulty").value;
+const multiplayer = new Multiplayer(game, getName, getDifficulty, getCollection, getRoomCode);
 
+
+document.querySelector("#btn-solo").addEventListener("click", async () => {
+  const name = getName();
   
-  const collection = document.querySelector("#collection").value;
+  if (!name) return ;
   try {
-    // Todo Spécifier les paramètres de createGame()
-    const data = await ApiService.createGame(name, difficulty);
-    console.log('Success:', data, data.id);
-    game.startGame(data.id, parseInt(difficulty), collection);
-  } catch (error) {
-    console.error('Error:', error);
-    alert(error.message || 'Erreur lors de la création de la partie');
+    const data = await ApiService.createGame(name, getDifficulty());
+    
+  } catch (e) {
+    alert(e.message);
   }
+});
+
+document.querySelector("#btn-create").addEventListener("click", async () =>{
+  const name = getName();
+  
+  multiplayer.createRoom();
+  
+})
+
+
+document.querySelector('#btn-join').addEventListener('click', () => {
+  const name = getName();
+  
+  multiplayer.joinRoom();
 });

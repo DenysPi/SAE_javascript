@@ -13,28 +13,41 @@
 <div class="setup-form">
   <h2>Démarrer une nouvelle partie</h2>
 
-  <form class="game-form" action="">
-    <label for="name">Nom du joueur: </label>
-    <input type="text" id="name" name="name" required>
+  <form class="game-form" >
+    <div class="form-left">
+      <label for="name">Nom du joueur</label>
+      <input type="text" id="name" required>
 
+      <label for="difficulty">Niveau De Difficulté</label>
+      <select id="difficulty">
+        <option value="4">Facile</option>
+        <option value="6">Moyen</option>
+        <option value="8">Difficile</option>
+      </select>
 
+      <label for="collection">Collection d'images</label>
+      <select id="collection">
+        <option value="animals">Animaux</option>
+        <option value="fruits">Fruits</option>
+        <option value="cars">Voitures</option>
+      </select>
 
-    <label for="diffuculty">Niveau De Difficulté : </label>
+      <div class="buttons">
+        <button id="btn-solo" type="button">Jouer</button>
+        <button id="btn-create" type="button">Créer salle</button>
+      </div>
+    </div>
+
+    <div class="form-right">
+      <div class="form-right-bottom">
+        <label for="room-code">Code de la salle</label>
+        <div class="room-input-group">
+          <input type="text" id="room-code" placeholder="12345">
+          <button id="btn-join" type="button">Rejoindre</button>
+        </div>
+      </div>
+    </div>
     
-    <select name="diffuculty" id="difficulty">
-      <option value="4">Facile</option>
-      <option value="6">Moyen</option>
-      <option value="8">Difficile</option>
-    </select>
-
-    <label for="collection">Collection d'images :</label>
-    <select id="collection" name="collection">
-      <option value="animals">animals</option>
-      <option value="fruits">fruits</option>
-      <option value="cars">cars</option>
-    </select>
-
-    <button type="submit">Jouer</button>
   </form>
 </div>
 
@@ -48,3 +61,16 @@
 </div>
 </body>
 </html>
+
+
+<div class="waiting-area hidden">
+  <div class="waiting-area-header">
+      <h2>En attente d'un adversaire</h2>
+      <div class="waiting-code"></div>
+  </div>
+  <div class="spinner">
+
+  </div>
+
+  <button id="btn-cancel">Annuler</button>
+</div>
