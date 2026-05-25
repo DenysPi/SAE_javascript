@@ -19,7 +19,7 @@ document.querySelector('.game-form').addEventListener('submit', async function (
     // Todo Spécifier les paramètres de createGame()
     const data = await ApiService.createGame(name, difficulty);
     console.log('Success:', data, data.id);
-    game.startGame(data.id, difficulty, collection);
+    game.startGame(data.id, parseInt(difficulty), collection);
   } catch (error) {
     console.error('Error:', error);
     alert(error.message || 'Erreur lors de la création de la partie');

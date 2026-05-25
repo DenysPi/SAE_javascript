@@ -2,6 +2,7 @@ import {imageCollections} from './ImageCollection.js';
 import {ApiService} from './ApiService.js';
 import {DOMManager} from './DOMManager.js';
 import {Board} from './Board.js';
+import {Timer} from './Timer.js';
 
 export class Game {
   /**
@@ -13,6 +14,7 @@ export class Game {
 
   #dom;
   #board;
+  #timer;
 
 
   constructor(dom = new DOMManager()) {
@@ -20,14 +22,13 @@ export class Game {
   }
 
   async endGame() {
-    // Todo À compléter
+    this.#timer.stop();
 
+    const pairsRemaining = this.#board.pairsRemaining();
 
-    const idARemplacer = 1234;
-    const nombreDePairesRestanteARemplacer = 5678;
 
     try {
-      const result = await ApiService.updateGameResult(idARemplacer, nombreDePairesRestanteARemplacer);
+      const result = await ApiService.updateGameResult(this.#id, pairsRemaining);
       console.log('Fin de partie:', result);
     } catch (error) {
       console.error('Error:', error);
@@ -52,10 +53,20 @@ export class Game {
     
 
     this.#board = new Board(cards);
+    this.#timer = new Timer(
+      (seconds) => {
+        this.#dom.updateTimer(seconds);
+        },
+      () => this.endGame()
+    );
 
 
     this.#dom.afficherGameArea();
     this.#dom.createCards(cards);
+    this.bindListeners();
+
+    this.#timer.start(this.getDuration());
+
 
   }
 
@@ -77,7 +88,44 @@ export class Game {
     if (resultat.etat === "ignore") {
       return;
     }
-
     
+    this.#dom.tournerCarte(index);
+
+    if (resultat.etat === "mismatch") {
+      setTimeout(() => {
+        const cartes = this.#board.retornerMisMatch();
+        this.#dom.retournerCartes(cartes);
+      }, 1000);
+    }
+
+    if (resultat.etat === "match") {
+      this.#dom.markMatched(resultat.indices);
+
+      if(this.#board.isCompete()) {
+        this.endGame();
+      }
+    }
+
+  }
+
+  bindListeners() {
+    
+    this.#dom.onCardClick((index) => this.faireTournerCarte(index));
+  
+    this.#dom.onAbandon(() => {
+      this.endGame();
+      this.#dom.afficherFormulaire();
+    });
+    
+  }
+
+  getDuration(){
+    console.log("difficulty", this.#difficulty);
+    switch(this.#difficulty) {
+      case 4: return 20;
+      case 6: return 30;
+      case 8: return 60;
+      default: return 30;
+    }
   }
 }

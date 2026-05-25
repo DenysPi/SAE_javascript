@@ -3,7 +3,9 @@ export class DOMManager {
   #selectors = {
     gameArea: '.game-area',
     gameBoard: '.game-board',
-    gameForm: '.game-form',
+    gameForm: '.setup-form',
+    timer: '.game-timer',
+    abandon: '#abandon'
   }
   /**
    * Ajoute toutes les images d'une collection sur le gameBoard
@@ -33,6 +35,53 @@ export class DOMManager {
       gameBoard.append(card);
     });
     
+  }
+
+  updateTimer(seconds) {
+    const timerElement = document.querySelector(this.#selectors.timer);
+    timerElement.textContent = `${seconds}s`;
+  }
+
+  markMatched(indices) {
+    indices.forEach(index => {
+      const card = document.querySelector(`.card[data-index="${index}"]`);
+      if (card) {
+        card.classList.add('matched');
+      }
+    });
+
+  }
+  tournerCarte(index) {
+    const card = document.querySelector(`.card[data-index="${index}"]`);
+    if (card) {
+      card.classList.add('flip');
+    }
+  }
+
+  retournerCartes(indices) {
+    indices.forEach(index => {
+      const card = document.querySelector(`.card[data-index="${index}"]`);
+      if (card) {
+        card.classList.remove('flip');
+      }
+    });
+  }
+
+  onCardClick(callback) {
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', () => {
+        const index = parseInt(card.dataset.index);
+        callback(index);
+      });
+    });
+  }
+
+  onAbandon(callback) {
+    document.querySelector(this.#selectors.abandon).addEventListener('click', () => {
+      callback();
+      
+    });
+      
   }
 
   afficherGameArea() {
