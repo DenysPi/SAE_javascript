@@ -25,4 +25,16 @@ export class Board {
         return true;
     }
 
+    tourner(index) {
+        if(!this.peutEtreRetournee(index)) {
+            return {etat: "ignore"};
+        }
+
+        this.#cartesRetournes.add(index);
+
+        if(this.#cartesRetournes.length === 2) {
+
+        }
+
+    }
 }
