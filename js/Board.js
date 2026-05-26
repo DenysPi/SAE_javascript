@@ -35,6 +35,7 @@ export class Board {
         this.#cartesRetournes.add(index);
 
         if (this.#cartesRetournes.size < 2) {
+            
             return {etat: 'flip'};
         }
 
@@ -66,6 +67,14 @@ export class Board {
 
     pairsRemaining(){
         return this.#totalpairs - this.#totalMatched;
+    }
+
+    pairsMatched(){
+        return this.#totalMatched;
+    }
+
+    totalPairs(){
+        return this.#totalpairs;
     }
 
 }

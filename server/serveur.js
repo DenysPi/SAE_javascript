@@ -66,16 +66,42 @@ wss.on('connection', (socket) => {
                         });
                         const data = await response.json()
 
-                        room.gameId = data.id
+                        const difficulty = parseInt(message.difficulty, 10);
+                        const duration = getDuration(difficulty);
 
+                        room.gameId = data.id
+                        room.totalPairs = difficulty;
+                        room.matchedPairs = 0;
+                        room.timeLeft = duration;
+                        room.ended = false;
+                        
+                        const cardOrder = generateCartesOrdre(parseInt(message.difficulty))
                         broadcast(message.room, {
                             type: 'START',
                             gameId: data.id,
                             difficulty: message.difficulty,
                             collection: message.collection,
                             firstPlayer: room.players[0].name,
+                            cardOrder,
+                            duration,
                             players: room.players.map(p => p.name)
                         })
+
+                        room.interval = setInterval(() => {
+                            if (room.ended) return;
+
+                            room.timeLeft--;
+                            
+                            broadcast(message.room, {
+                                type: 'TICK',
+                                timeLeft: room.timeLeft
+                            });
+
+                            if (room.timeLeft <= 0) {
+                                finirPartie(message.room, "TIMEOUT");
+                                
+                            }
+                        }, 1000);
 
                     }catch (error) {
                         console.error('Error:', error);
@@ -83,12 +109,89 @@ wss.on('connection', (socket) => {
                         return;
                     }
                 }
+                break;
             }
+            case "CARD_FLIP":{
 
-    }});
+                broadcast(socket.room, {
+                    type: "CARD_FLIP",
+                    cardIndex: message.cardIndex,
+                    player:socket.name
+                }, socket)
+                break
+            }
+            case "FLIP_BACK":{
+
+                broadcast(socket.room, {type:"FLIP_BACK"}, socket)
+                break
+            }
+            case "LEAVE":{
+
+                const room = rooms.get(message.room)
+
+                if (room){
+
+                    rooms.delete(message.room)
+                }
+
+                break
+            }
+        }
+    });
+
+
+    socket.on('close', () => {
+        if (!socket.room) return;
+        const room = rooms.get(socket.room);
+        if (!room || room.ended) return;
+        finirPartie(socket.room, "DISCONNECT");
+    });
+
 });
 
 
+async function finirPartie(roomId, raison) {
+  const room = rooms.get(roomId);
+  if (!room || room.ended) return;
+  room.ended = true;
+ 
+  if (room.tickInterval) {
+    clearInterval(room.tickInterval);
+  }
+ 
+  const pairsRemaining = room.totalPairs - room.matchedPairs;
+ 
+  try {
+    await fetch(`${MEMORY_URL}/${room.gameId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ score: pairsRemaining })
+    });
+  } catch (err) {
+    //
+  }
+ 
+  broadcast(roomId, {
+    type: 'GAME_END',
+    raison: raison,
+    pairsRemaining,
+    scores: room.scores
+  });
+ 
+  rooms.delete(roomId);
+}
+
+
+function generateCartesOrdre(diffuculty){
+  const ids = []
+  for(let i=1; i<=diffuculty;i++){
+    ids.push(i)
+  }
+  const cards = [...ids, ...ids]
+  cards.sort(()=> Math.random()-0.5)
+  return cards
+
+}
 
 function broadcast(roomId, message, exclude=null){
 
@@ -103,6 +206,16 @@ function broadcast(roomId, message, exclude=null){
     player.send(msg)
   }
 }
+
+function getDuration(difficulty) {
+  switch (difficulty) {
+    case 4: return 20;
+    case 6: return 30;
+    case 8: return 60;
+    default: return 30;
+  }
+}
+
 
 
 server.listen(PORT, () => console.log(`Serveur WebSocket sur ws://localhost:${PORT}`));

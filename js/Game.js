@@ -17,14 +17,23 @@ export class Game {
   #timer;
 
 
+  #monTour = false;
+
+  #multiplayer = null;
+  #isMultiplayer = false;
+
   constructor(dom = new DOMManager()) {
     this.#dom = dom;
   }
 
   async endGame() {
-    this.#timer.stop();
+    if(this.#timer) this.#timer.stop();
+
+    
 
     const pairsRemaining = this.#board.pairsRemaining();
+    const pairsMatched = this.#board.pairsMatched();
+    const totalPairs = this.#board.totalPairs();
 
 
     try {
@@ -42,46 +51,73 @@ export class Game {
    * Start a new game.
    * @param {number} id - The game ID.
    */
-  startGame(id, diffuculty, collection) {
+  startGame(id, difficulty, collection, cardOrder=null, multiplayer=null, monTour=true) {
     this.#id = id;
+    console.log("Starting game with id=", id, "difficulty=", difficulty, "collection=", collection, "cardOrder=", cardOrder);
 
-
-    this.#difficulty = diffuculty;
+    this.#difficulty = parseInt(difficulty);
     this.#collection = collection;
 
-    const cards = this.getCardsForCollection(collection);
+    this.#monTour = monTour
+
+    this.#multiplayer = multiplayer;
+    this.#isMultiplayer = this.#multiplayer != null;
+    
+
+    const cards = this.getCardsForCollection(cardOrder);
     
 
     this.#board = new Board(cards);
-    this.#timer = new Timer(
-      (seconds) => {
-        this.#dom.updateTimer(seconds);
-        },
-      () => this.endGame()
-    );
 
+    if (this.#isMultiplayer) {
+      this.#timer = null;
+      this.#dom.updateTimer(this.getDuration());
+    } else {
+      this.#timer = new Timer(
+        (seconds) => {
+          this.#dom.updateTimer(seconds);
+          },
+        () => this.endGame()
+        );
+      this.#timer.start(this.getDuration());
+    } 
+    
 
+    
     this.#dom.afficherGameArea();
     this.#dom.createCards(cards);
     this.bindListeners();
 
-    this.#timer.start(this.getDuration());
-
-
   }
 
-  getCardsForCollection() {
+  getCardsForCollection(cardOrder=null){
     const all = imageCollections[this.#collection];
 
     const cardsSelected = all.slice(0, this.#difficulty);
 
-    const cards = [...cardsSelected, ...cardsSelected];
+    
+    if (cardOrder) {
 
+      const result = []
+
+      for (const id of cardOrder){
+        
+        const card = cardsSelected.find(c => c.id === id);
+        if (card){
+          result.push(card)
+        }
+        
+      }
+      
+      return result;
+    }
+    const cards = [...cardsSelected, ...cardsSelected];
     return cards.sort(() => Math.random() -0.5);
   }
 
 
   faireTournerCarte(index){
+    if (this.#isMultiplayer && !this.#monTour) return;
 
     const resultat = this.#board.tourner(index);
 
@@ -91,9 +127,18 @@ export class Game {
     
     this.#dom.tournerCarte(index);
 
+    if (this.#isMultiplayer) {
+      console.log("Envoi du flip de carte", index);
+      this.#multiplayer.sendCardFlip(index);
+    }
+
     if (resultat.etat === "mismatch") {
       setTimeout(() => {
         const cartes = this.#board.retornerMisMatch();
+        if (this.#isMultiplayer) {
+          this.#monTour = false;
+          this.#multiplayer.sendFlipBack();
+        }
         this.#dom.retournerCartes(cartes);
       }, 1000);
     }
@@ -106,6 +151,41 @@ export class Game {
       }
     }
 
+  }
+
+
+  flipDistinct(index){
+    const resultat = this.#board.tourner(index);
+
+    if (resultat.etat === "ignore") {
+      return;
+    }
+    this.#dom.tournerCarte(index);
+    console.log("flipDistinct index=", index, "resultat=", resultat);
+    if (resultat.etat === "match") {
+      this.#dom.markMatched(resultat.indices);
+    }
+  }
+
+  flipBackDistant() {
+    const cartes = this.#board.retornerMisMatch();
+    this.#dom.retournerCartes(cartes);
+    this.#monTour = true;
+  }
+
+  onGameEnd(message){
+
+    const pairsRemaining = message.pairsRemaining;
+    const raison = message.raison;
+    const scores = message.scores;
+
+    console.log("Game ended. Raison:", raison, "Pairs remaining:", pairsRemaining, "Scores:", scores);
+
+
+    
+  }
+  onTick(timeLeft){
+    this.#dom.updateTimer(timeLeft);
   }
 
   bindListeners() {
@@ -128,4 +208,5 @@ export class Game {
       default: return 30;
     }
   }
+
 }

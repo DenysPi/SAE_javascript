@@ -23,6 +23,7 @@ document.querySelector("#btn-solo").addEventListener("click", async () => {
   try {
     const data = await ApiService.createGame(name, getDifficulty());
     
+    game.startGame(data.id, getDifficulty(), getCollection());
   } catch (e) {
     alert(e.message);
   }

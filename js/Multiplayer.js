@@ -64,10 +64,23 @@ export class Multiplayer {
             console.log("En attente")
         };
 
-        this.#handlers['START'] = ({gameId, difficulty, collection}) => {
-            
-            this.#game.startGame(gameId, difficulty, collection)
+        this.#handlers['START'] = ({gameId, difficulty, collection, cardOrder, multiplayer, firstPlayer}) => {
+            const monTour = firstPlayer === this.#getName()
+            this.#game.startGame(gameId, difficulty, collection, cardOrder, this, monTour)
 
+            this.#handlers["CARD_FLIP"] = ({cardIndex}) =>{
+                this.#game.flipDistinct(cardIndex);
+            }
+            this.#handlers["FLIP_BACK"]= () =>{
+
+                this.#game.flipBackDistant();
+            }
+            this.#handlers["TICK"] = ({timeLeft}) => {
+                this.#game.onTick(timeLeft);
+            }
+            this.#handlers["GAME_END"] = (message) => {
+                this.#game.onGameEnd(message);
+            }
         }
 
         this.send({
@@ -111,6 +124,15 @@ export class Multiplayer {
             
             
         })
+    }
+
+    sendCardFlip(cardIndex){
+        
+        this.send({type:"CARD_FLIP", cardIndex})
+    }
+
+    sendFlipBack(){
+        this.send({type:"FLIP_BACK"})
     }
 
     send(message){
