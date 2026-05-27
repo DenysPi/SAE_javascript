@@ -94,6 +94,14 @@ export class DOMManager {
     document.querySelector(this.#selectors.gameArea).classList.add('hidden');
   }
 
+  afficherWatingRoom(roomCode) {
+    const waitingRoom = document.querySelector('.waiting-area');
+    waitingRoom.querySelector('.waiting-code').textContent = roomCode;
+    waitingRoom.classList.remove('hidden');
+
+    document.querySelector('.setup-form').classList.add('hidden');
+  }
+
   afficherQuiz(q) {
     return new Promise((resolve) => {
       const overlay = document.querySelector('.quiz-overlay');
@@ -157,4 +165,22 @@ export class DOMManager {
       this.afficherFormulaire();
     };
   }
+
+  afficherScore(matched, total) {
+    const scoreEl = document.querySelector('.game-scores');
+    scoreEl.textContent = `Score: ${matched} / ${total}`;
+  }
+
+  afficherScoresMultiplayer(scores) {
+    const scoreEl = document.querySelector('.game-scores');
+  
+    scoreEl.innerHTML = '';
+    for (const [name, score] of Object.entries(scores)) {
+      const line = document.createElement('span');
+      
+      line.textContent = `${name}: ${score}`;
+      scoreEl.appendChild(line);
+    }
+  }
+  
 }

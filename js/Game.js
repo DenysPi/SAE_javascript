@@ -87,11 +87,12 @@ export class Game {
 
     this.#board = new Board(cards);
 
-    this.#dom.afficherScore(this.#board.pairsMatched(), this.#board.totalPairs());
+    
 
     if (this.#isMultiplayer) {
       this.#timer = null;
       this.#dom.updateTimer(this.getDuration());
+
     } else {
       this.#timer = new Timer(
         (seconds) => {
@@ -100,6 +101,7 @@ export class Game {
         () => this.endGame()
         );
       this.#timer.start(this.getDuration());
+      this.#dom.afficherScore(this.#board.pairsMatched(), this.#board.totalPairs());
       if (this.#quizMode) {
         QuizService.preloadQuestions(10);
       }
@@ -176,6 +178,10 @@ export class Game {
         }
       }
       this.#dom.markMatched(resultat.indices);
+      if (this.#isMultiplayer) {
+        this.#multiplayer.sendMatch();
+      }
+      this.#dom.afficherScore(this.#board.pairsMatched(), this.#board.totalPairs());
 
       if(this.#board.isCompete()) {
         this.endGame();
@@ -233,15 +239,43 @@ export class Game {
     const raison = message.raison;
     const scores = message.scores;
 
-    console.log("Game ended. Raison:", raison, "Pairs remaining:", pairsRemaining, "Scores:", scores);
+    const reasonText = this.buildReasonText(raison, scores);
+
+    this.#dom.afficherResultat({title: "Partie terminée", reason: reasonText, scores});
 
 
     
   }
+
+  buildReasonText(raison, scores) {
+    let base;
+    switch (raison) {
+      case "TIME_UP": base = "Temps écoulé"; break;
+      case "COMPLETE": base = "Toutes les paires trouvées"; break;
+      case "ABANDON": base = "Un joueur a abandonné"; break;
+      case "DISCONNECT": base = "Un joueur s'est déconnecté"; break;
+      default: base = "Partie terminée";
+    }
+    
+    const entries = Object.entries(scores);
+    
+    const [name1, score1] = entries[0];
+    const [name2, score2] = entries[1];
+    if (score1 > score2) return `${base} — ${name1} gagne !`;
+    if (score2 > score1) return `${base} — ${name2} gagne !`;
+    return `${base} — égalité !`;
+  }
+
   onTick(timeLeft){
     this.#dom.updateTimer(timeLeft);
   }
+  onScoreUpdate(scores) {
+    this.#dom.afficherScoresMultiplayer(scores);
+  }
 
+  onWaiting(roomCode){
+    this.#dom.afficherWatingRoom(roomCode);
+  }
   bindListeners() {
     
     this.#dom.onCardClick((index) => this.faireTournerCarte(index));
