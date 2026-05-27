@@ -12,6 +12,7 @@ const getName = () => document.querySelector("#name").value.trim();
 const getDifficulty = () => document.querySelector("#difficulty").value;
 const getCollection = () => document.querySelector("#collection").value;
 const getRoomCode = () => document.querySelector("#room-code").value
+const getMode = () => document.querySelector("#mode").value;
 
 const multiplayer = new Multiplayer(game, getName, getDifficulty, getCollection, getRoomCode);
 
@@ -22,8 +23,10 @@ document.querySelector("#btn-solo").addEventListener("click", async () => {
   if (!name) return ;
   try {
     const data = await ApiService.createGame(name, getDifficulty());
+
+    const quizMode = getMode() === "quiz";
     
-    game.startGame(data.id, getDifficulty(), getCollection());
+    game.startGame(data.id, getDifficulty(), getCollection(),null,null,true, quizMode);
   } catch (e) {
     alert(e.message);
   }
