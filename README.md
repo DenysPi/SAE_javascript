@@ -1,5 +1,5 @@
 Denys Piddubnyi 
-Yanis Laoubla
+Yanis Laoula
 
 
 Fonctionallités du jeu: 

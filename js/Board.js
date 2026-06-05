@@ -60,6 +60,10 @@ export class Board {
         this.#locked = false;
         return indices;
     }
+    annulerMatch(indices) {
+        indices.forEach(i => this.#matched.delete(i));
+        this.#totalMatched--;
+    }
 
     isCompete() {
         return this.#totalMatched === this.#totalpairs;

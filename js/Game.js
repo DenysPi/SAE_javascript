@@ -3,6 +3,7 @@ import {ApiService} from './ApiService.js';
 import {DOMManager} from './DOMManager.js';
 import {Board} from './Board.js';
 import {Timer} from './Timer.js';
+import {QuizService} from './QuizService.js';
 
 export class Game {
   /**
@@ -22,14 +23,20 @@ export class Game {
   #multiplayer = null;
   #isMultiplayer = false;
 
+  #quizMode
+
+  #gameEnded = false;
   constructor(dom = new DOMManager()) {
     this.#dom = dom;
   }
 
   async endGame() {
+    this.#gameEnded = true;
     if(this.#timer) this.#timer.stop();
 
     
+    if (this.#isMultiplayer) return;
+
 
     const pairsRemaining = this.#board.pairsRemaining();
     const pairsMatched = this.#board.pairsMatched();
@@ -44,6 +51,15 @@ export class Game {
       alert(error.message || 'Erreur lors de la fin de la partie');
     }
 
+    let reason;
+
+    if(this.#board.isCompete()) {
+      reason = "Bravo, tu as gagné !";
+    }else{
+      reason = "Temps écoulé. Paires restantes: " + pairsRemaining;
+    }
+
+    this.#dom.afficherResultat({title: "Partie terminée", reason, scores: null});
   }
 
 
@@ -51,9 +67,8 @@ export class Game {
    * Start a new game.
    * @param {number} id - The game ID.
    */
-  startGame(id, difficulty, collection, cardOrder=null, multiplayer=null, monTour=true) {
+  startGame(id, difficulty, collection, cardOrder=null, multiplayer=null, monTour=true, quizMode=false) {
     this.#id = id;
-    console.log("Starting game with id=", id, "difficulty=", difficulty, "collection=", collection, "cardOrder=", cardOrder);
 
     this.#difficulty = parseInt(difficulty);
     this.#collection = collection;
@@ -62,16 +77,22 @@ export class Game {
 
     this.#multiplayer = multiplayer;
     this.#isMultiplayer = this.#multiplayer != null;
-    
+
+    this.#quizMode = quizMode && !this.#isMultiplayer;
+
+    this.#gameEnded = false;
 
     const cards = this.getCardsForCollection(cardOrder);
     
 
     this.#board = new Board(cards);
 
+    
+
     if (this.#isMultiplayer) {
       this.#timer = null;
       this.#dom.updateTimer(this.getDuration());
+
     } else {
       this.#timer = new Timer(
         (seconds) => {
@@ -80,6 +101,10 @@ export class Game {
         () => this.endGame()
         );
       this.#timer.start(this.getDuration());
+      this.#dom.afficherScore(this.#board.pairsMatched(), this.#board.totalPairs());
+      if (this.#quizMode) {
+        QuizService.preloadQuestions(10);
+      }
     } 
     
 
@@ -116,7 +141,8 @@ export class Game {
   }
 
 
-  faireTournerCarte(index){
+  async faireTournerCarte(index){
+    if (this.#gameEnded) return;
     if (this.#isMultiplayer && !this.#monTour) return;
 
     const resultat = this.#board.tourner(index);
@@ -144,7 +170,18 @@ export class Game {
     }
 
     if (resultat.etat === "match") {
+      if (this.#quizMode) {
+        const success = await this.poserQuestion();
+        if (!success) {
+          this.annulerMatch(resultat.indices);
+          return;
+        }
+      }
       this.#dom.markMatched(resultat.indices);
+      if (this.#isMultiplayer) {
+        this.#multiplayer.sendMatch();
+      }
+      this.#dom.afficherScore(this.#board.pairsMatched(), this.#board.totalPairs());
 
       if(this.#board.isCompete()) {
         this.endGame();
@@ -153,6 +190,29 @@ export class Game {
 
   }
 
+  async poserQuestion() {
+    const question = await QuizService.getQuestion();
+    if (!question) {
+      alert("Aucune question disponible, vous continuez !");
+      return true;
+    }
+
+    this.#timer.pause();
+    const answerIndex = await this.#dom.afficherQuiz(question)
+    this.#timer.resume();
+
+    return answerIndex === question.correctIndex;
+  }
+
+  annulerMatch(indices) {
+    this.#board.annulerMatch(indices);
+    setTimeout(() => {
+      this.#dom.retournerCartes(indices);
+    }, 500);
+    if (this.#timer) {
+      this.#timer.diminuer(3);
+    }
+  }
 
   flipDistinct(index){
     const resultat = this.#board.tourner(index);
@@ -179,15 +239,43 @@ export class Game {
     const raison = message.raison;
     const scores = message.scores;
 
-    console.log("Game ended. Raison:", raison, "Pairs remaining:", pairsRemaining, "Scores:", scores);
+    const reasonText = this.buildReasonText(raison, scores);
+
+    this.#dom.afficherResultat({title: "Partie terminée", reason: reasonText, scores});
 
 
     
   }
+
+  buildReasonText(raison, scores) {
+    let base;
+    switch (raison) {
+      case "TIME_UP": base = "Temps écoulé"; break;
+      case "COMPLETE": base = "Toutes les paires trouvées"; break;
+      case "ABANDON": base = "Un joueur a abandonné"; break;
+      case "DISCONNECT": base = "Un joueur s'est déconnecté"; break;
+      default: base = "Partie terminée";
+    }
+    
+    const entries = Object.entries(scores);
+    
+    const [name1, score1] = entries[0];
+    const [name2, score2] = entries[1];
+    if (score1 > score2) return `${base} — ${name1} gagne !`;
+    if (score2 > score1) return `${base} — ${name2} gagne !`;
+    return `${base} — égalité !`;
+  }
+
   onTick(timeLeft){
     this.#dom.updateTimer(timeLeft);
   }
+  onScoreUpdate(scores) {
+    this.#dom.afficherScoresMultiplayer(scores);
+  }
 
+  onWaiting(roomCode){
+    this.#dom.afficherWatingRoom(roomCode);
+  }
   bindListeners() {
     
     this.#dom.onCardClick((index) => this.faireTournerCarte(index));

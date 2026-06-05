@@ -93,4 +93,94 @@ export class DOMManager {
     document.querySelector(this.#selectors.gameForm).classList.remove('hidden');
     document.querySelector(this.#selectors.gameArea).classList.add('hidden');
   }
+
+  afficherWatingRoom(roomCode) {
+    const waitingRoom = document.querySelector('.waiting-area');
+    waitingRoom.querySelector('.waiting-code').textContent = roomCode;
+    waitingRoom.classList.remove('hidden');
+
+    document.querySelector('.setup-form').classList.add('hidden');
+  }
+
+  afficherQuiz(q) {
+    return new Promise((resolve) => {
+      const overlay = document.querySelector('.quiz-overlay');
+      const questionEl = overlay.querySelector('.quiz-question');
+      const choicesEl = overlay.querySelector('.quiz-choices');
+ 
+      questionEl.textContent = q.question;
+      choicesEl.innerHTML = '';
+ 
+      q.choices.forEach((choice, idx) => {
+        const btn = document.createElement('button');
+        btn.classList.add('quiz-choice');
+        btn.textContent = choice;
+        btn.onclick = () => {
+          
+          choicesEl.querySelectorAll('button').forEach(b => b.disabled = true);
+         
+          choicesEl.querySelectorAll('button').forEach((b, i) => {
+            if (i === q.correctIndex) b.classList.add('correct');
+            else if (i === idx) b.classList.add('wrong');
+          });
+          
+          setTimeout(() => {
+            overlay.classList.add('hidden');
+            resolve(idx);
+          }, 800);
+        };
+        choicesEl.appendChild(btn);
+      });
+ 
+      overlay.classList.remove('hidden');
+    });
+  }
+  afficherResultat ({ title, reason, scores }) {
+    const overlay = document.querySelector('.result-overlay');
+    if (!overlay) {
+      alert(`${title}\n${reason}`);
+      this.afficherFormulaire();
+      return;
+    }
+ 
+    overlay.querySelector('.result-title').textContent = title;
+    overlay.querySelector('.result-reason').textContent = reason;
+ 
+    const scoresDiv = overlay.querySelector('.result-scores');
+    scoresDiv.innerHTML = '';
+ 
+    if (scores) {
+      for (const [name, score] of Object.entries(scores)) {
+        const line = document.createElement('p');
+        line.textContent = `${name} : ${score} paire(s)`;
+        scoresDiv.appendChild(line);
+      }
+    }
+ 
+    overlay.classList.remove('hidden');
+ 
+    const closeBtn = overlay.querySelector('.result-close');
+    closeBtn.onclick = () => {
+      overlay.classList.add('hidden');
+      this.afficherFormulaire();
+    };
+  }
+
+  afficherScore(matched, total) {
+    const scoreEl = document.querySelector('.game-scores');
+    scoreEl.textContent = `Score: ${matched} / ${total}`;
+  }
+
+  afficherScoresMultiplayer(scores) {
+    const scoreEl = document.querySelector('.game-scores');
+  
+    scoreEl.innerHTML = '';
+    for (const [name, score] of Object.entries(scores)) {
+      const line = document.createElement('span');
+      
+      line.textContent = `${name}: ${score}`;
+      scoreEl.appendChild(line);
+    }
+  }
+  
 }

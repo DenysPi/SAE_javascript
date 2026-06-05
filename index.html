@@ -32,6 +32,12 @@
         <option value="cars">Voitures</option>
       </select>
 
+      <label for="mode">Mode de jeu</label>
+      <select id="mode">
+        <option value="normal">Normal</option>
+        <option value="quiz">Quiz (solo uniquement)</option>
+      </select>
+
       <div class="buttons">
         <button id="btn-solo" type="button">Jouer</button>
         <button id="btn-create" type="button">Créer salle</button>
@@ -54,13 +60,13 @@
 <div class="game-area hidden">
   <div class="game-area-header">
     <h2 id="name"></h2>
+    <div class="game-scores"></div>
     <button id="abandon">Quitter la partie</button>
     <div class="game-timer">0s</div>
   </div>
   <div class="game-board"></div>
 </div>
-</body>
-</html>
+
 
 
 <div class="waiting-area hidden">
@@ -74,3 +80,24 @@
 
   <button id="btn-cancel">Annuler</button>
 </div>
+
+<div class="result-overlay hidden">
+  <div class="result-modal">
+    <h2 class="result-title"></h2>
+    <p class="result-reason"></p>
+    <div class="result-scores"></div>
+    <button class="result-close">OK</button>
+  </div>
+</div>
+
+<div class="quiz-overlay hidden">
+  <div class="quiz-modal">
+    <h3 class="quiz-title">Question</h3>
+    <p class="quiz-question"></p>
+    <div class="quiz-choices"></div>
+  </div>
+</div>
+
+</body>
+</html>
+

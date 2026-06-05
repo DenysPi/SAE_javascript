@@ -9,9 +9,9 @@ export class Multiplayer {
     #getName
     #getDifficulty
     #getCollection
+    #roomCode
+
     #getRoomCode
-
-
     #handlers = {}
 
     constructor(game, getName, getDifficulty, getCollection, getRoomCode) {
@@ -22,7 +22,7 @@ export class Multiplayer {
         this.#getDifficulty = getDifficulty
         this.#getCollection = getCollection
         this.#getRoomCode = getRoomCode
-
+        
     }
 
 
@@ -52,7 +52,7 @@ export class Multiplayer {
 
 
     async connectAndJoin(name, roomCode){
-        
+        this.#roomCode = roomCode;
         try{
             await this.connect()
         }catch{
@@ -60,14 +60,14 @@ export class Multiplayer {
         }
 
         this.#handlers['WAITING'] = () => {
-
-            console.log("En attente")
+            this.#game.onWaiting(this.#roomCode);
         };
 
         this.#handlers['START'] = ({gameId, difficulty, collection, cardOrder, multiplayer, firstPlayer}) => {
             const monTour = firstPlayer === this.#getName()
             this.#game.startGame(gameId, difficulty, collection, cardOrder, this, monTour)
 
+            
             this.#handlers["CARD_FLIP"] = ({cardIndex}) =>{
                 this.#game.flipDistinct(cardIndex);
             }
@@ -81,6 +81,10 @@ export class Multiplayer {
             this.#handlers["GAME_END"] = (message) => {
                 this.#game.onGameEnd(message);
             }
+            this.#handlers["SCORE_UPDATE"] = ({ scores }) => {
+                this.#game.onScoreUpdate(scores);
+            };
+
         }
 
         this.send({
@@ -130,6 +134,9 @@ export class Multiplayer {
         
         this.send({type:"CARD_FLIP", cardIndex})
     }
+    sendMatch(){
+        this.send({type:"MATCH"})
+    }
 
     sendFlipBack(){
         this.send({type:"FLIP_BACK"})
@@ -137,5 +144,9 @@ export class Multiplayer {
 
     send(message){
         this.#ws.send(JSON.stringify(message))
+    }
+
+    get roomCode() {
+        return this.#roomCode;
     }
 }

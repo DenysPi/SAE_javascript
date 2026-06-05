@@ -11,7 +11,7 @@ export class ApiService {
    * @returns {Promise<GameReturn>}
    */
   static async createGame(pseudo, difficulty) {
-    const response = await fetch(`${MEMORY_URL}`, {
+    const response = await fetch(`${MEMORY_URL}/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

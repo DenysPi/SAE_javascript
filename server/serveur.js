@@ -87,7 +87,7 @@ wss.on('connection', (socket) => {
                             players: room.players.map(p => p.name)
                         })
 
-                        room.interval = setInterval(() => {
+                        room.tickInterval = setInterval(() => {
                             if (room.ended) return;
 
                             room.timeLeft--;
@@ -98,10 +98,15 @@ wss.on('connection', (socket) => {
                             });
 
                             if (room.timeLeft <= 0) {
-                                finirPartie(message.room, "TIMEOUT");
+                                finirPartie(message.room, "TIME_UP");
                                 
                             }
                         }, 1000);
+
+                        broadcast(message.room, {
+                            type: "SCORE_UPDATE",
+                            scores: room.scores  
+                        });
 
                     }catch (error) {
                         console.error('Error:', error);
@@ -124,6 +129,21 @@ wss.on('connection', (socket) => {
 
                 broadcast(socket.room, {type:"FLIP_BACK"}, socket)
                 break
+            }
+
+            case "MATCH":{
+                const room = rooms.get(socket.room)
+
+                if (!room || room.ended) return;
+
+                room.matchedPairs++;
+                room.scores[socket.name] += 1;
+                broadcast(socket.room, {type: "SCORE_UPDATE", scores: room.scores});
+
+                if( room.matchedPairs >= room.totalPairs){
+                    finirPartie(socket.room, "COMPLETE");
+                }
+                break;
             }
             case "LEAVE":{
 
